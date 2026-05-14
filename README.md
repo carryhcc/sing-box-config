@@ -1,5 +1,6 @@
 # sing-box-config
 自用sing-box单节点配置,随版本更新
+当前版本 1.14.0-alpha.23
 
 # Sing-box 高级代理配置说明文档
 
