@@ -1,5 +1,9 @@
 # Sing-box Advanced Proxy Configuration Documentation
 
+<a href="./README_CN.md">
+  <img src="https://img.shields.io/badge/Language-中文版-red?style=for-the-badge" alt="Chinese Version">
+</a>
+
 This document provides a detailed explanation of a network proxy configuration based on the **Sing-box** universal format. This setup integrates modern encryption protocols and implements intelligent traffic splitting and DNS anti-pollution.
 
 ---
