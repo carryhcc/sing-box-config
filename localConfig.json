@@ -1,287 +1,287 @@
 {
-  "log": {
-    "level": "warn"
-  },
-  "http_clients": [
-    {
-      "tag": "rule-set-proxy",
-      "detour": "proxy"
-    }
-  ],
-  "dns": {
-    "servers": [
-      {
-        "tag": "local",
-        "type": "https",
-        "server": "223.5.5.5",
-        "server_port": 443,
-        "path": "/dns-query"
-      },
-      {
-        "tag": "remote",
-        "type": "https",
-        "server": "1.1.1.1",
-        "server_port": 443,
-        "path": "/dns-query",
-        "detour": "proxy"
-      }
-    ],
-    "rules": [
-      {
-        "query_type": [
-          "PTR"
-        ],
-        "action": "reject"
-      },
-      {
-        "domain_suffix": [
-          "arpa",
-          "local"
-        ],
-        "action": "reject"
-      },
-      {
-        "domain_suffix": [
-          "google.com",
-          "googleapis.com",
-          "gstatic.com",
-          "googlevideo.com",
-          "youtube.com",
-          "ytimg.com",
-          "gmail.com",
-          "googleusercontent.com",
-          "ggpht.com",
-          "github.com",
-          "githubusercontent.com",
-          "githubassets.com",
-          "github.io",
-          "openai.com",
-          "chatgpt.com",
-          "oaistatic.com",
-          "oaiusercontent.com",
-          "cloudflare.com",
-          "cloudflare-dns.com"
-        ],
-        "server": "remote"
-      },
-      {
-        "rule_set": "geosite-cn",
-        "server": "local"
-      },
-      {
-        "domain_suffix": [
-          "qq.com",
-          "tencent.com",
-          "weixin.qq.com",
-          "dingtalk.com",
-          "dingtalkapps.com",
-          "icloud.com.cn",
-          "apple.com.cn",
-          "alibabadns.com",
-          "amap.com",
-          "autonavi.com"
-        ],
-        "server": "local"
-      }
-    ],
-    "final": "remote",
-    "strategy": "ipv4_only"
-  },
-  "inbounds": [
-    {
-      "type": "tun",
-      "tag": "tun-in",
-      "address": [
-        "172.19.0.1/30"
-      ],
-      "auto_route": true,
-      "strict_route": true,
-      "stack": "mixed",
-      "route_exclude_address": [
-        "10.0.0.0/8",
-        "192.168.0.0/16",
-        "172.16.0.0/12"
-      ]
-    }
-  ],
-  "outbounds": [
-    {
-      "type": "selector",
-      "tag": "proxy",
-      "outbounds": [
-        "auto",
-        "vless-reality",
-        "hysteria2",
-        "tuic",
-        "direct"
-      ],
-      "default": "auto"
-    },
-    {
-      "type": "urltest",
-      "tag": "auto",
-      "outbounds": [
-        "vless-reality",
-        "hysteria2",
-        "tuic"
-      ],
-      "url": "https://www.gstatic.com/generate_204",
-      "interval": "5m",
-      "tolerance": 50
-    },
-    {
-      "type": "vless",
-      "tag": "vless-reality",
-      "server": "111.111.111.111",
-      "server_port": 3251,
-      "uuid": "xxxxxxxxxxxxxxxxx",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "addons.mozilla.org",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "firefox"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "xxxxxxxxxxxxxxxxx",
-          "short_id": "xxxxxxxxxxxxxxxxx"
-        }
-      }
-    },
-    {
-      "type": "hysteria2",
-      "tag": "hysteria2",
-      "server": "111.111.111.111",
-      "server_port": 3252,
-      "up_mbps": 200,
-      "down_mbps": 1000,
-      "password": "xxxxxxxxxxxxxxxxx",
-      "tls": {
-        "enabled": true,
-        "server_name": "addons.mozilla.org",
-        "certificate_public_key_sha256": [
-          "xxxxxxxxxxxxxxxxx"
-        ],
-        "alpn": [
-          "h3"
-        ]
-      }
-    },
-    {
-      "type": "tuic",
-      "tag": "tuic",
-      "server": "111.111.111.111",
-      "server_port": 3253,
-      "uuid": "xxxxxxxxxxxxxxxxx",
-      "password": "xxxxxxxxxxxxxxxxx",
-      "congestion_control": "bbr",
-      "udp_relay_mode": "native",
-      "tls": {
-        "enabled": true,
-        "server_name": "addons.mozilla.org",
-        "certificate_public_key_sha256": [
-          "xxxxxxxxxxxxxxxxx"
-        ],
-        "alpn": [
-          "h3"
-        ]
-      }
-    },
-    {
-      "type": "direct",
-      "tag": "direct"
-    }
-  ],
-  "route": {
-    "default_domain_resolver": "remote",
-    "rule_set": [
-      {
-        "tag": "geosite-cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
-        "http_client": "rule-set-proxy"
-      },
-      {
-        "tag": "geoip-cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
-        "http_client": "rule-set-proxy"
-      }
-    ],
-    "rules": [
-      {
-        "inbound": [
-          "tun-in"
-        ],
-        "action": "sniff"
-      },
-      {
-        "protocol": "dns",
-        "port": 53,
-        "action": "hijack-dns"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "domain_suffix": [
-          "google.com",
-          "googleapis.com",
-          "gstatic.com",
-          "googlevideo.com",
-          "youtube.com",
-          "ytimg.com",
-          "gmail.com",
-          "googleusercontent.com",
-          "ggpht.com",
-          "github.com",
-          "githubusercontent.com",
-          "githubassets.com",
-          "github.io",
-          "openai.com",
-          "chatgpt.com",
-          "oaistatic.com",
-          "oaiusercontent.com",
-          "cloudflare.com",
-          "cloudflare-dns.com"
-        ],
-        "outbound": "proxy"
-      },
-      {
-        "rule_set": "geosite-cn",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geoip-cn",
-        "outbound": "direct"
-      },
-      {
-        "domain_suffix": [
-          "qq.com",
-          "tencent.com",
-          "weixin.qq.com",
-          "dingtalk.com",
-          "dingtalkapps.com",
-          "icloud.com.cn",
-          "apple.com.cn",
-          "alibabadns.com",
-          "amap.com",
-          "autonavi.com"
-        ],
-        "outbound": "direct"
-      }
-    ],
-    "final": "proxy",
-    "auto_detect_interface": true
-  },
-  "experimental": {
-    "cache_file": {
-      "enabled": true
-    }
-  }
+    "log": {
+        "level": "warn"
+    },
+    "http_clients": [
+        {
+            "tag": "rule-set-proxy",
+            "detour": "proxy"
+        }
+    ],
+    "dns": {
+        "servers": [
+            {
+                "tag": "local",
+                "type": "https",
+                "server": "223.5.5.5",
+                "server_port": 443,
+                "path": "/dns-query"
+            },
+            {
+                "tag": "remote",
+                "type": "https",
+                "server": "1.1.1.1",
+                "server_port": 443,
+                "path": "/dns-query",
+                "detour": "proxy"
+            }
+        ],
+        "rules": [
+            {
+                "query_type": [
+                    "PTR"
+                ],
+                "action": "reject"
+            },
+            {
+                "domain_suffix": [
+                    "arpa",
+                    "local"
+                ],
+                "action": "reject"
+            },
+            {
+                "domain_suffix": [
+                    "google.com",
+                    "googleapis.com",
+                    "gstatic.com",
+                    "googlevideo.com",
+                    "youtube.com",
+                    "ytimg.com",
+                    "gmail.com",
+                    "googleusercontent.com",
+                    "ggpht.com",
+                    "github.com",
+                    "githubusercontent.com",
+                    "githubassets.com",
+                    "github.io",
+                    "openai.com",
+                    "chatgpt.com",
+                    "oaistatic.com",
+                    "oaiusercontent.com",
+                    "cloudflare.com",
+                    "cloudflare-dns.com"
+                ],
+                "server": "remote"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "server": "local"
+            },
+            {
+                "domain_suffix": [
+                    "qq.com",
+                    "tencent.com",
+                    "weixin.qq.com",
+                    "dingtalk.com",
+                    "dingtalkapps.com",
+                    "icloud.com.cn",
+                    "apple.com.cn",
+                    "alibabadns.com",
+                    "amap.com",
+                    "autonavi.com"
+                ],
+                "server": "local"
+            }
+        ],
+        "final": "remote",
+        "strategy": "ipv4_only"
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "address": [
+                "172.19.0.1/30"
+            ],
+            "auto_route": true,
+            "strict_route": true,
+            "stack": "mixed",
+            "route_exclude_address": [
+                "10.0.0.0/8",
+                "192.168.0.0/16",
+                "172.16.0.0/12"
+            ]
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "selector",
+            "tag": "proxy",
+            "outbounds": [
+                "auto",
+                "vless-reality",
+                "hysteria2",
+                "tuic",
+                "direct"
+            ],
+            "default": "auto"
+        },
+        {
+            "type": "urltest",
+            "tag": "auto",
+            "outbounds": [
+                "vless-reality",
+                "hysteria2",
+                "tuic"
+            ],
+            "url": "https://www.gstatic.com/generate_204",
+            "interval": "5m",
+            "tolerance": 50
+        },
+        {
+            "type": "vless",
+            "tag": "vless-reality",
+            "server": "111.111.111.111",
+            "server_port": 3251,
+            "uuid": "xxxxxxxxxxxxxxxxx",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "addons.mozilla.org",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "xxxxxxxxxxxxxxxxx",
+                    "short_id": "xxxxxxxxxxxxxxxxx"
+                }
+            }
+        },
+        {
+            "type": "hysteria2",
+            "tag": "hysteria2",
+            "server": "111.111.111.111",
+            "server_port": 3252,
+            "up_mbps": 200,
+            "down_mbps": 1000,
+            "password": "xxxxxxxxxxxxxxxxx",
+            "tls": {
+                "enabled": true,
+                "server_name": "addons.mozilla.org",
+                "certificate_public_key_sha256": [
+                    "xxxxxxxxxxxxxxxxx"
+                ],
+                "alpn": [
+                    "h3"
+                ]
+            }
+        },
+        {
+            "type": "tuic",
+            "tag": "tuic",
+            "server": "111.111.111.111",
+            "server_port": 3253,
+            "uuid": "xxxxxxxxxxxxxxxxx",
+            "password": "xxxxxxxxxxxxxxxxx",
+            "congestion_control": "bbr",
+            "udp_relay_mode": "native",
+            "tls": {
+                "enabled": true,
+                "server_name": "addons.mozilla.org",
+                "certificate_public_key_sha256": [
+                    "xxxxxxxxxxxxxxxxx"
+                ],
+                "alpn": [
+                    "h3"
+                ]
+            }
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        }
+    ],
+    "route": {
+        "default_domain_resolver": "remote",
+        "rule_set": [
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "http_client": "rule-set-proxy"
+            },
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "http_client": "rule-set-proxy"
+            }
+        ],
+        "rules": [
+            {
+                "inbound": [
+                    "tun-in"
+                ],
+                "action": "sniff"
+            },
+            {
+                "protocol": "dns",
+                "port": 53,
+                "action": "hijack-dns"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "direct"
+            },
+            {
+                "domain_suffix": [
+                    "google.com",
+                    "googleapis.com",
+                    "gstatic.com",
+                    "googlevideo.com",
+                    "youtube.com",
+                    "ytimg.com",
+                    "gmail.com",
+                    "googleusercontent.com",
+                    "ggpht.com",
+                    "github.com",
+                    "githubusercontent.com",
+                    "githubassets.com",
+                    "github.io",
+                    "openai.com",
+                    "chatgpt.com",
+                    "oaistatic.com",
+                    "oaiusercontent.com",
+                    "cloudflare.com",
+                    "cloudflare-dns.com"
+                ],
+                "outbound": "proxy"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geoip-cn",
+                "outbound": "direct"
+            },
+            {
+                "domain_suffix": [
+                    "qq.com",
+                    "tencent.com",
+                    "weixin.qq.com",
+                    "dingtalk.com",
+                    "dingtalkapps.com",
+                    "icloud.com.cn",
+                    "apple.com.cn",
+                    "alibabadns.com",
+                    "amap.com",
+                    "autonavi.com"
+                ],
+                "outbound": "direct"
+            }
+        ],
+        "final": "proxy",
+        "auto_detect_interface": true
+    },
+    "experimental": {
+        "cache_file": {
+            "enabled": true
+        }
+    }
 }
